@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoard Lite — Boards</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h1>TaskBoard Lite</h1>
+        <div style="display:flex; gap:1rem; align-items:center">
+            <a href="stats.html" style="color:white; text-decoration:none">Στατιστικά</a>
+            <button onclick="logout()">Αποσύνδεση</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <h2>Τα Boards μου</h2>
+            <button class="btn btn-primary" onclick="openModal()">+ Νέο Board</button>
+        </div>
+
+        <div class="boards-grid" id="boards-grid">
+            <p>Φόρτωση...</p>
+        </div>
+    </div>
+
+    <!-- Modal δημιουργίας board -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3>Νέο Board</h3>
+            <div class="form-group">
+                <label>Τίτλος</label>
+                <input type="text" id="board-title" placeholder="π.χ. Εργασία Πληροφορικής">
+            </div>
+            <div class="form-group">
+                <label>Περιγραφή (προαιρετικό)</label>
+                <textarea id="board-desc" rows="3" placeholder="Περιγραφή..."></textarea>
+            </div>
+            <p id="board-error" class="error"></p>
+            <div style="display:flex; gap:0.8rem; justify-content:flex-end">
+                <button class="btn" onclick="closeModal()" style="background:#eee">Ακύρωση</button>
+                <button class="btn btn-primary" onclick="createBoard()">Δημιουργία</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        async function loadBoards() {
+            try {
+                const boards = await apiCall('/boards');
+                const grid = document.getElementById('boards-grid');
+                if (boards.length === 0) {
+                    grid.innerHTML = '<p style="color:#666">Δεν έχεις boards ακόμα. Δημιούργησε ένα!</p>';
+                    return;
+                }
+                grid.innerHTML = boards.map(b => `
+                    <div class="board-card" onclick="window.location.href='board.html?id=${b.id}'">
+                        <h3>${b.title}</h3>
+                        <p>${b.description || 'Χωρίς περιγραφή'}</p>
+                        <div style="margin-top:1rem; display:flex; justify-content:flex-end">
+                            <button class="btn btn-danger" style="font-size:0.8rem; padding:0.3rem 0.7rem"
+                                onclick="event.stopPropagation(); deleteBoard(${b.id})">Διαγραφή</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function createBoard() {
+            const title = document.getElementById('board-title').value;
+            const description = document.getElementById('board-desc').value;
+            if (!title) {
+                document.getElementById('board-error').textContent = 'Ο τίτλος είναι υποχρεωτικός';
+                return;
+            }
+            try {
+                await apiCall('/boards', 'POST', { title, description });
+                closeModal();
+                loadBoards();
+            } catch (e) {
+                document.getElementById('board-error').textContent = e.message;
+            }
+        }
+
+        async function deleteBoard(id) {
+            if (!confirm('Διαγραφή board;')) return;
+            await apiCall(`/boards/${id}`, 'DELETE');
+            loadBoards();
+        }
+
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('board-title').value = '';
+            document.getElementById('board-desc').value = '';
+            document.getElementById('board-error').textContent = '';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        loadBoards();
+    </script>
+</body>
+</html>

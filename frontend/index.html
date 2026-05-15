@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoard Lite — Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h2>TaskBoard Lite</h2>
+
+            <div id="login-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Κωδικός</label>
+                    <input type="password" id="login-password" placeholder="••••••••">
+                </div>
+                <p id="login-error" class="error"></p>
+                <button class="btn btn-primary" onclick="login()">Σύνδεση</button>
+                <div class="toggle-link">
+                    Δεν έχεις λογαριασμό; <span onclick="showRegister()">Εγγραφή</span>
+                </div>
+            </div>
+
+            <div id="register-form" style="display:none">
+                <div class="form-group">
+                    <label>Όνομα χρήστη</label>
+                    <input type="text" id="reg-username" placeholder="Το όνομά σου">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Κωδικός</label>
+                    <input type="password" id="reg-password" placeholder="••••••••">
+                </div>
+                <p id="register-error" class="error"></p>
+                <button class="btn btn-primary" onclick="register()">Εγγραφή</button>
+                <div class="toggle-link">
+                    Έχεις ήδη λογαριασμό; <span onclick="showLogin()">Σύνδεση</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (getToken()) window.location.href = 'boards.html';
+
+        function showRegister() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+        }
+
+        function showLogin() {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const data = await apiCall('/auth/login', 'POST', { email, password });
+                setToken(data.access_token);
+                window.location.href = 'boards.html';
+            } catch (e) {
+                document.getElementById('login-error').textContent = e.message;
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            try {
+                await apiCall('/auth/register', 'POST', { username, email, password });
+                showLogin();
+                document.getElementById('login-error').textContent = '';
+                alert('Εγγραφή επιτυχής! Συνδέσου τώρα.');
+            } catch (e) {
+                document.getElementById('register-error').textContent = e.message;
+            }
+        }
+    </script>
+</body>
+</html>

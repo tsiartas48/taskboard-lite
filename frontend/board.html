@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoard Lite — Board</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h1 id="board-title">Board</h1>
+        <div style="display:flex; gap:1rem; align-items:center">
+            <a href="boards.html" style="color:white; text-decoration:none">← Πίσω</a>
+            <button onclick="logout()">Αποσύνδεση</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="kanban">
+            <div class="column" id="col-todo" ondragover="allowDrop(event)" ondrop="drop(event, 'todo')">
+                <div class="column-header">
+                    <h3>📋 To Do</h3>
+                    <button class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.7rem"
+                        onclick="openTaskModal('todo')">+</button>
+                </div>
+                <div id="tasks-todo"></div>
+            </div>
+
+            <div class="column" id="col-in_progress" ondragover="allowDrop(event)" ondrop="drop(event, 'in_progress')">
+                <div class="column-header">
+                    <h3>⚡ In Progress</h3>
+                    <button class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.7rem"
+                        onclick="openTaskModal('in_progress')">+</button>
+                </div>
+                <div id="tasks-in_progress"></div>
+            </div>
+
+            <div class="column" id="col-done" ondragover="allowDrop(event)" ondrop="drop(event, 'done')">
+                <div class="column-header">
+                    <h3>✅ Done</h3>
+                    <button class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.7rem"
+                        onclick="openTaskModal('done')">+</button>
+                </div>
+                <div id="tasks-done"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal δημιουργίας task -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal">
+            <h3>Νέο Task</h3>
+            <div class="form-group">
+                <label>Τίτλος</label>
+                <input type="text" id="task-title" placeholder="π.χ. Γράψε τον κώδικα">
+            </div>
+            <div class="form-group">
+                <label>Περιγραφή (προαιρετικό)</label>
+                <textarea id="task-desc" rows="3" placeholder="Περιγραφή..."></textarea>
+            </div>
+            <p id="task-error" class="error"></p>
+            <div style="display:flex; gap:0.8rem; justify-content:flex-end">
+                <button class="btn" onclick="closeTaskModal()" style="background:#eee">Ακύρωση</button>
+                <button class="btn btn-primary" onclick="createTask()">Δημιουργία</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        const params = new URLSearchParams(window.location.search);
+        const boardId = params.get('id');
+        let currentStatus = 'todo';
+        let draggedTaskId = null;
+
+        if (!boardId) window.location.href = 'boards.html';
+
+        async function loadBoard() {
+            try {
+                const board = await apiCall(`/boards/${boardId}`);
+                document.getElementById('board-title').textContent = board.title;
+                document.title = `${board.title} — TaskBoard Lite`;
+                loadTasks();
+            } catch (e) {
+                window.location.href = 'boards.html';
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const tasks = await apiCall(`/boards/${boardId}/tasks`);
+                ['todo', 'in_progress', 'done'].forEach(status => {
+                    const container = document.getElementById(`tasks-${status}`);
+                    const filtered = tasks.filter(t => t.status === status);
+                    container.innerHTML = filtered.length === 0
+                        ? '<p style="color:#aaa; font-size:0.85rem; text-align:center; margin-top:1rem">Κανένα task</p>'
+                        : filtered.map(t => `
+                            <div class="task-card" draggable="true"
+                                ondragstart="dragStart(event, ${t.id})"
+                                ondragend="dragEnd(event)">
+                                <h4>${t.title}</h4>
+                                ${t.description ? `<p>${t.description}</p>` : ''}
+                                <div class="task-actions">
+                                    ${status !== 'todo' ? `<button style="background:#fff3cd" onclick="moveTask(${t.id}, '${prevStatus(status)}')">◀</button>` : ''}
+                                    ${status !== 'done' ? `<button style="background:#d4edda" onclick="moveTask(${t.id}, '${nextStatus(status)}')">▶</button>` : ''}
+                                    <button style="background:#f8d7da" onclick="deleteTask(${t.id})">🗑</button>
+                                </div>
+                            </div>
+                        `).join('');
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function prevStatus(status) {
+            return status === 'in_progress' ? 'todo' : 'in_progress';
+        }
+
+        function nextStatus(status) {
+            return status === 'todo' ? 'in_progress' : 'done';
+        }
+
+        async function createTask() {
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-desc').value;
+            if (!title) {
+                document.getElementById('task-error').textContent = 'Ο τίτλος είναι υποχρεωτικός';
+                return;
+            }
+            try {
+                await apiCall(`/boards/${boardId}/tasks`, 'POST', {
+                    title, description, status: currentStatus
+                });
+                closeTaskModal();
+                loadTasks();
+            } catch (e) {
+                document.getElementById('task-error').textContent = e.message;
+            }
+        }
+
+        async function moveTask(taskId, newStatus) {
+            await apiCall(`/tasks/${taskId}/move`, 'PATCH', { status: newStatus });
+            loadTasks();
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm('Διαγραφή task;')) return;
+            await apiCall(`/tasks/${taskId}`, 'DELETE');
+            loadTasks();
+        }
+
+        // Drag and drop
+        function dragStart(event, taskId) {
+            draggedTaskId = taskId;
+            event.target.style.opacity = '0.5';
+        }
+
+        function dragEnd(event) {
+            event.target.style.opacity = '1';
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        async function drop(event, status) {
+            event.preventDefault();
+            if (draggedTaskId) {
+                await moveTask(draggedTaskId, status);
+                draggedTaskId = null;
+            }
+        }
+
+        function openTaskModal(status) {
+            currentStatus = status;
+            document.getElementById('task-modal').classList.add('active');
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-error').textContent = '';
+        }
+
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.remove('active');
+        }
+
+        loadBoard();
+    </script>
+</body>
+</html>

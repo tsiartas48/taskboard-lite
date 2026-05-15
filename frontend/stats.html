@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoard Lite — Στατιστικά</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h1>TaskBoard Lite</h1>
+        <div style="display:flex; gap:1rem; align-items:center">
+            <a href="boards.html" style="color:white; text-decoration:none">← Πίσω</a>
+            <button onclick="logout()">Αποσύνδεση</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Στατιστικά</h2>
+
+        <div class="stats-grid" id="stats-grid">
+            <p>Φόρτωση...</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        async function loadStats() {
+            try {
+                const stats = await apiCall('/stats');
+                document.getElementById('stats-grid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="number">${stats.boards}</div>
+                        <div class="label">Boards</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">${stats.tasks.total}</div>
+                        <div class="label">Συνολικά Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" style="color:#e67e22">${stats.tasks.todo}</div>
+                        <div class="label">To Do</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" style="color:#3498db">${stats.tasks.in_progress}</div>
+                        <div class="label">In Progress</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" style="color:#27ae60">${stats.tasks.done}</div>
+                        <div class="label">Done</div>
+                    </div>
+                `;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        loadStats();
+    </script>
+</body>
+</html>
