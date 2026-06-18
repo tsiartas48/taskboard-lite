@@ -71,7 +71,7 @@
                 setToken(data.access_token);
                 window.location.href = 'boards.html';
             } catch (e) {
-                document.getElementById('login-error').textContent = e.message;
+                document.getElementById('login-error').textContent = typeof e === 'string' ? e : (e.message || 'Login failed');
             }
         }
 
@@ -85,7 +85,7 @@
                 document.getElementById('login-error').textContent = '';
                 alert('Εγγραφή επιτυχής! Συνδέσου τώρα.');
             } catch (e) {
-                document.getElementById('register-error').textContent = e.message;
+                document.getElementById('register-error').textContent = typeof e === 'string' ? e : (e.message || 'Registration failed');
             }
         }
     </script>
