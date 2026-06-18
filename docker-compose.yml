@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./taskboard.db
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+    container_name: taskboard-backend
+    networks:
+      - taskboard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5500:5500"
+    depends_on:
+      backend:
+        condition: service_healthy
+    container_name: taskboard-frontend
+    networks:
+      - taskboard-network
+    environment:
+      - API_URL=http://backend:8000
+
+networks:
+  taskboard-network:
+    driver: bridge
+
+volumes:
+  taskboard-db:
