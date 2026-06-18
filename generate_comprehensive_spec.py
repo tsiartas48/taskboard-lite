@@ -1,0 +1,558 @@
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from datetime import datetime
+
+# Create Document
+doc = Document()
+
+# Set up styles
+style = doc.styles['Normal']
+style.font.name = 'Calibri'
+style.font.size = Pt(11)
+
+# Title
+title = doc.add_paragraph()
+title_run = title.add_run('TaskBoard Lite')
+title_run.font.size = Pt(28)
+title_run.font.bold = True
+title_run.font.color.rgb = RGBColor(0, 51, 102)
+title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+# Subtitle
+subtitle = doc.add_paragraph('Technical & Project Specification Document')
+subtitle_run = subtitle.runs[0]
+subtitle_run.font.size = Pt(14)
+subtitle_run.font.color.rgb = RGBColor(68, 114, 196)
+subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+# Assignment info
+assignment = doc.add_paragraph('Course: Information Systems Project Management')
+assignment_run = assignment.runs[0]
+assignment_run.font.size = Pt(11)
+assignment_run.italic = True
+assignment.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+# Date
+date_para = doc.add_paragraph(f'Document Date: {datetime.now().strftime("%B %d, %Y")}')
+date_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+doc.add_paragraph()
+
+# TABLE OF CONTENTS
+doc.add_heading('Table of Contents', level=1)
+toc_items = [
+    '1. Assignment Overview',
+    '2. Learning Objectives',
+    '3. Project Scope & Constraints',
+    '4. Deliverables',
+    '5. 3-Week Roadmap',
+    '6. Executive Summary',
+    '7. Technical Architecture',
+    '8. Data Model',
+    '9. API Endpoints',
+    '10. Implementation Status',
+    '11. Evaluation Criteria',
+    '12. Alternative Domains'
+]
+for item in toc_items:
+    doc.add_paragraph(item, style='List Bullet')
+
+doc.add_page_break()
+
+# SECTION 1: Assignment Overview
+doc.add_heading('1. Assignment Overview', level=1)
+doc.add_paragraph(
+    'TaskBoard Lite is a personal task management web application that implements Kanban-style '
+    'task organization (To Do / In Progress / Done), inspired by Scrum principles for efficient '
+    'work management. This is an individual academic project for the course "Information Systems '
+    'Project Management" with a 3-week timeline (~30-40 hours total).'
+)
+
+doc.add_heading('1.1 Project Type', level=2)
+doc.add_paragraph('Individual Assignment')
+
+doc.add_heading('1.2 Duration', level=2)
+doc.add_paragraph('3 weeks (~30-40 total hours)')
+
+doc.add_heading('1.3 Format', level=2)
+doc.add_paragraph('Full-stack web application with technical documentation')
+
+# SECTION 2: Learning Objectives
+doc.add_heading('2. Learning Objectives', level=1)
+learning_objectives = [
+    'Design applications using layered architecture (presentation / business / data)',
+    'Implement RESTful APIs and document them properly',
+    'Design relational databases with appropriate indexing',
+    'Apply caching strategies at application level',
+    'Experience full project lifecycle: from specifications to deployment',
+    'Version control and collaborative development practices',
+    'API documentation and Swagger/OpenAPI standards',
+    'Frontend-backend integration and data flow management'
+]
+for obj in learning_objectives:
+    doc.add_paragraph(obj, style='List Bullet')
+
+# SECTION 3: Project Scope & Constraints
+doc.add_heading('3. Project Scope & Constraints', level=1)
+
+doc.add_heading('3.1 Scope Definition', level=2)
+scope_points = [
+    'Single user system (personal task management)',
+    'Three main entities: Users, Boards, Tasks',
+    'Approximately 10-12 API endpoints',
+    'In-memory caching mechanism',
+    'Lightweight database (SQLite)',
+    'Simple but functional user interface',
+    'Basic authentication with JWT tokens'
+]
+for point in scope_points:
+    doc.add_paragraph(point, style='List Bullet')
+
+doc.add_heading('3.2 Intentional Constraints', level=2)
+constraints = [
+    'No real-time features (WebSockets)',
+    'No distributed caching systems',
+    'No complex permission models',
+    'Single-user data isolation',
+    'No file upload functionality',
+    'Limited to core Kanban functionality'
+]
+for constraint in constraints:
+    doc.add_paragraph(constraint, style='List Bullet')
+
+doc.add_heading('3.3 Design Rationale', level=2)
+doc.add_paragraph(
+    'The scope is deliberately limited to allow comprehensive coverage of essential concepts '
+    '(architecture, database design, API, caching) within the 3-week timeframe, while maintaining '
+    'the potential for future extension and scalability.'
+)
+
+# SECTION 4: Deliverables
+doc.add_heading('4. Deliverables', level=1)
+
+deliverables = [
+    ('Technical Documentation', '8-12 pages covering: architecture, data structures, data flow, '
+     'database schema, API design, implementation notes'),
+    ('Source Code', 'Public Git repository with frequent commits, following best practices'),
+    ('Functional Demo', 'Locally runnable via docker-compose with clear setup instructions'),
+    ('API Documentation', 'Swagger/OpenAPI documentation (auto-generated by FastAPI)'),
+    ('Database Schema', 'Complete ER diagram and schema documentation'),
+    ('README & Setup Guide', 'Getting started instructions for both Docker and manual setup')
+]
+
+for title_del, desc in deliverables:
+    doc.add_paragraph(f'{title_del}: {desc}', style='List Bullet')
+
+# SECTION 5: 3-Week Roadmap
+doc.add_heading('5. 3-Week Development Roadmap', level=1)
+
+roadmap_table = doc.add_table(rows=4, cols=3)
+roadmap_table.style = 'Light Grid Accent 1'
+
+# Header
+header_cells = roadmap_table.rows[0].cells
+header_cells[0].text = 'Week'
+header_cells[1].text = 'Hours'
+header_cells[2].text = 'Deliverables & Tasks'
+
+# Week 1
+week1_cells = roadmap_table.rows[1].cells
+week1_cells[0].text = '1'
+week1_cells[1].text = '10-12'
+week1_cells[2].text = ('Design phase: Architecture, ER diagram, OpenAPI spec, UI mockups.\n'
+                       'Setup: Repository, Docker, Database schema, JWT auth endpoints.\n'
+                       'First API endpoints: /auth/register, /auth/login, /auth/me')
+
+# Week 2
+week2_cells = roadmap_table.rows[2].cells
+week2_cells[0].text = '2'
+week2_cells[1].text = '12-14'
+week2_cells[2].text = ('Backend: Complete CRUD for Boards and Tasks, JWT middleware, in-memory cache.\n'
+                       'Frontend: Login form, Boards list, Board view with drag-drop between columns.\n'
+                       'Testing: Basic functionality tests')
+
+# Week 3
+week3_cells = roadmap_table.rows[3].cells
+week3_cells[0].text = '3'
+week3_cells[1].text = '10-12'
+week3_cells[2].text = ('Polish: Statistics endpoint, input validation, error handling.\n'
+                       'Testing: Unit and integration tests.\n'
+                       'Documentation: README, screenshots, Swagger docs.\n'
+                       'Presentation: Demo video or live demo')
+
+# Time Management Tips
+doc.add_heading('5.1 Time Management Tips', level=2)
+tips = [
+    'Use SQLite instead of PostgreSQL if Docker setup causes delays',
+    'Use existing drag-drop libraries (e.g., @dnd-kit/core) for UI efficiency',
+    'Prioritize core functionality over advanced features',
+    'Commit frequently (at least daily) to Git',
+    'Write API documentation as you build endpoints'
+]
+for tip in tips:
+    doc.add_paragraph(tip, style='List Bullet')
+
+doc.add_page_break()
+
+# SECTION 6: Executive Summary
+doc.add_heading('6. Executive Summary', level=1)
+doc.add_paragraph(
+    'TaskBoard Lite is a modern web application designed to help users organize and track tasks '
+    'using the Kanban methodology. The application combines a FastAPI backend with a responsive '
+    'HTML/CSS/JavaScript frontend, providing an intuitive interface for task management across '
+    'multiple boards.'
+)
+
+# SECTION 7: Technical Architecture
+doc.add_heading('7. Technical Architecture', level=1)
+
+doc.add_heading('7.1 Technology Stack', level=2)
+tech_table = doc.add_table(rows=7, cols=2)
+tech_table.style = 'Light Grid Accent 1'
+cells = tech_table.rows[0].cells
+cells[0].text = 'Component'
+cells[1].text = 'Technology'
+
+rows_data = [
+    ('Backend Framework', 'FastAPI (Python 3.11)'),
+    ('Database', 'SQLite with SQLAlchemy ORM'),
+    ('Authentication', 'JWT Tokens (PyJWT)'),
+    ('Frontend', 'HTML5, CSS3, Vanilla JavaScript'),
+    ('Caching', 'In-memory cache (custom implementation)'),
+    ('API Documentation', 'Swagger UI / OpenAPI 3.0')
+]
+for i, (component, tech) in enumerate(rows_data, 1):
+    cells = tech_table.rows[i].cells
+    cells[0].text = component
+    cells[1].text = tech
+
+doc.add_heading('7.2 System Architecture', level=2)
+doc.add_paragraph('Three-tier architecture:')
+layers = [
+    'Presentation Layer: Single-page web application (HTML/CSS/JavaScript)',
+    'Business Logic Layer: RESTful API built with FastAPI',
+    'Data Layer: SQLite database with SQLAlchemy ORM'
+]
+for layer in layers:
+    doc.add_paragraph(layer, style='List Bullet')
+
+doc.add_heading('7.3 API Layer Design', level=2)
+doc.add_paragraph('The API follows REST principles with:')
+api_features = [
+    'Stateless authentication using JWT tokens',
+    'Consistent error handling and HTTP status codes',
+    'Request/response validation using Pydantic schemas',
+    'CORS middleware for frontend-backend communication',
+    'Automatic API documentation via Swagger'
+]
+for feature in api_features:
+    doc.add_paragraph(feature, style='List Bullet')
+
+# SECTION 8: Data Model
+doc.add_heading('8. Data Model', level=1)
+
+doc.add_heading('8.1 Entity Relationship Diagram', level=2)
+doc.add_paragraph('The data model consists of three main entities:')
+
+doc.add_heading('8.2 Users Table', level=2)
+user_fields = [
+    'id (Integer, Primary Key)',
+    'email (String, Unique, Indexed)',
+    'username (String)',
+    'password_hash (String)',
+    'created_at (DateTime, Default: UTC now)'
+]
+for field in user_fields:
+    doc.add_paragraph(field, style='List Bullet')
+
+doc.add_heading('8.3 Boards Table', level=2)
+board_fields = [
+    'id (Integer, Primary Key)',
+    'user_id (Integer, Foreign Key → users.id)',
+    'title (String)',
+    'description (Text, Optional)',
+    'created_at (DateTime, Default: UTC now)'
+]
+for field in board_fields:
+    doc.add_paragraph(field, style='List Bullet')
+
+doc.add_heading('8.4 Tasks Table', level=2)
+task_fields = [
+    'id (Integer, Primary Key)',
+    'board_id (Integer, Foreign Key → boards.id)',
+    'title (String)',
+    'description (Text, Optional)',
+    'status (String: "todo", "in_progress", "done")',
+    'position (Integer, Order within board)',
+    'created_at (DateTime, Default: UTC now)',
+    'updated_at (DateTime, Updated on changes)'
+]
+for field in task_fields:
+    doc.add_paragraph(field, style='List Bullet')
+
+doc.add_heading('8.5 Relationships', level=2)
+doc.add_paragraph('User ↔ Board: One-to-Many (User owns multiple Boards)', style='List Bullet')
+doc.add_paragraph('Board ↔ Task: One-to-Many (Board contains multiple Tasks)', style='List Bullet')
+
+# SECTION 9: API Endpoints
+doc.add_heading('9. API Endpoints', level=1)
+
+doc.add_heading('9.1 Authentication Endpoints', level=2)
+auth_endpoints = [
+    'POST /auth/register - Register new user',
+    'POST /auth/login - Authenticate user and get JWT token',
+    'GET /auth/me - Get current authenticated user info'
+]
+for endpoint in auth_endpoints:
+    doc.add_paragraph(endpoint, style='List Bullet')
+
+doc.add_heading('9.2 Board Management Endpoints', level=2)
+board_endpoints = [
+    'GET /boards - List all boards for current user',
+    'POST /boards - Create new board',
+    'GET /boards/{board_id} - Get specific board',
+    'PUT /boards/{board_id} - Update board details',
+    'DELETE /boards/{board_id} - Delete board and associated tasks'
+]
+for endpoint in board_endpoints:
+    doc.add_paragraph(endpoint, style='List Bullet')
+
+doc.add_heading('9.3 Task Management Endpoints', level=2)
+task_endpoints = [
+    'GET /boards/{board_id}/tasks - Get all tasks in board',
+    'POST /boards/{board_id}/tasks - Create new task',
+    'GET /tasks/{task_id} - Get specific task',
+    'PUT /tasks/{task_id} - Update task (title, description, status)',
+    'DELETE /tasks/{task_id} - Delete task'
+]
+for endpoint in task_endpoints:
+    doc.add_paragraph(endpoint, style='List Bullet')
+
+doc.add_heading('9.4 Statistics Endpoints', level=2)
+stats_endpoints = [
+    'GET /stats/boards - Get board statistics',
+    'GET /stats/tasks - Get task statistics'
+]
+for endpoint in stats_endpoints:
+    doc.add_paragraph(endpoint, style='List Bullet')
+
+doc.add_heading('9.5 Total Endpoints', level=2)
+doc.add_paragraph('13 endpoints total, covering all core functionality')
+
+# SECTION 10: Implementation Status
+doc.add_heading('10. Implementation Status', level=1)
+
+doc.add_heading('10.1 Completed Components', level=2)
+completed = [
+    '✓ Backend API with all CRUD endpoints',
+    '✓ User authentication with JWT tokens',
+    '✓ Database schema and SQLAlchemy models',
+    '✓ Request/response validation (Pydantic)',
+    '✓ In-memory caching mechanism',
+    '✓ Frontend login and registration forms',
+    '✓ Board and task management interface',
+    '✓ Drag-and-drop task movement between columns',
+    '✓ Error handling and validation',
+    '✓ API documentation (Swagger UI)',
+    '✓ Docker configuration (Dockerfile, docker-compose.yml)',
+    '✓ Getting Started guide'
+]
+for item in completed:
+    doc.add_paragraph(item, style='List Bullet')
+
+doc.add_heading('10.2 Documentation Deliverables', level=2)
+docs = [
+    'Technical Specification (8-12 pages)',
+    'Business Specification (comprehensive document)',
+    'Getting Started Guide (setup instructions)',
+    'Repository Structure Diagram (PNG)',
+    'Swagger/OpenAPI Documentation (auto-generated)',
+    'README.md with project overview'
+]
+for doc_item in docs:
+    doc.add_paragraph(doc_item, style='List Bullet')
+
+doc.add_heading('10.3 Repository Management', level=2)
+repo_points = [
+    'Public GitHub repository: github.com/tsiartas48/taskboard-lite',
+    'Frequent commits with descriptive messages',
+    'Clear commit history tracking development',
+    'All code and documentation in version control'
+]
+for point in repo_points:
+    doc.add_paragraph(point, style='List Bullet')
+
+doc.add_page_break()
+
+# SECTION 11: Security Considerations
+doc.add_heading('11. Security Considerations', level=1)
+
+security = [
+    'JWT Authentication: All protected endpoints require valid tokens',
+    'Password Hashing: Bcrypt for secure password storage',
+    'Data Isolation: Users can only access their own data',
+    'CORS Protection: API configured for specific origins',
+    'Input Validation: Pydantic schemas validate all requests',
+    'Error Handling: Generic error messages prevent information leakage'
+]
+for sec in security:
+    doc.add_paragraph(sec, style='List Bullet')
+
+# SECTION 12: Caching Strategy
+doc.add_heading('12. Caching Implementation', level=1)
+
+doc.add_heading('12.1 In-Memory Cache', level=2)
+doc.add_paragraph(
+    'The application implements a simple in-memory caching layer to reduce database queries '
+    'and improve performance. Cache keys are generated based on user_id to ensure data isolation.'
+)
+
+doc.add_heading('12.2 Cache Invalidation', level=2)
+cache_invalidation = [
+    'Cache is automatically invalidated when data changes',
+    'Boards cache invalidated on board creation/update/deletion',
+    'Tasks cache invalidated on task changes',
+    'Manual cache clearing available for debugging'
+]
+for point in cache_invalidation:
+    doc.add_paragraph(point, style='List Bullet')
+
+# SECTION 13: Deployment Options
+doc.add_heading('13. Deployment Options', level=1)
+
+doc.add_heading('13.1 Docker Deployment', level=2)
+doc.add_paragraph('Fully containerized using docker-compose:')
+docker_items = [
+    'Backend service (Python/FastAPI)',
+    'Frontend service (HTML/CSS/JavaScript)',
+    'Volume mounts for development',
+    'Health checks for service monitoring',
+    'Network isolation using custom network'
+]
+for item in docker_items:
+    doc.add_paragraph(item, style='List Bullet')
+
+doc.add_heading('13.2 Manual Deployment', level=2)
+doc.add_paragraph('Can also run locally without Docker:')
+manual_items = [
+    'Python virtual environment setup',
+    'Direct uvicorn server execution',
+    'HTTP server for static frontend files',
+    'Local SQLite database'
+]
+for item in manual_items:
+    doc.add_paragraph(item, style='List Bullet')
+
+# SECTION 14: Evaluation Criteria
+doc.add_heading('14. Evaluation Criteria', level=1)
+
+eval_table = doc.add_table(rows=3, cols=2)
+eval_table.style = 'Light Grid Accent 1'
+
+header_cells = eval_table.rows[0].cells
+header_cells[0].text = 'Criterion'
+header_cells[1].text = 'Requirements'
+
+eval1_cells = eval_table.rows[1].cells
+eval1_cells[0].text = 'Report & Architecture'
+eval1_cells[1].text = 'Complete technical documentation with architecture diagrams, design justifications, and implementation notes'
+
+eval2_cells = eval_table.rows[2].cells
+eval2_cells[0].text = 'MVP Functionality'
+eval2_cells[1].text = 'All endpoints working correctly, demo application running, user can create boards/tasks and move them between columns'
+
+# SECTION 15: Alternative Domains
+doc.add_heading('15. Alternative Project Domains', level=1)
+doc.add_paragraph(
+    'While maintaining the same architecture (3 tables, ~10-12 endpoints, in-memory cache), '
+    'the project can be implemented with different domains:'
+)
+
+alternative_domains = [
+    'Personal Library: Book progress tracking with ratings and reading statistics',
+    'Expense Tracker: Category-based expenses with monthly summaries and statistics',
+    'Habit Tracker: Daily habits with streak tracking and completion rates',
+    'Restaurant List: Restaurant reviews with geolocation and rating system',
+    'Project Portfolio: Personal projects with progress tracking and skills'
+]
+for domain in alternative_domains:
+    doc.add_paragraph(domain, style='List Bullet')
+
+# SECTION 16: Future Enhancement Opportunities
+doc.add_heading('16. Future Enhancement Opportunities', level=1)
+
+enhancements = [
+    'Collaborative boards: Share boards with other users',
+    'Advanced filtering: Filter and search tasks by various criteria',
+    'Due dates and reminders: Time-based task management',
+    'File attachments: Attach documents to tasks',
+    'Activity history: Track all changes to tasks and boards',
+    'Mobile app: Native iOS/Android applications',
+    'Dark mode: Theme customization options',
+    'Task dependencies: Define task relationships and sequences',
+    'Recurring tasks: Automate repetitive task creation',
+    'Integrations: Connect with external services (Slack, email, calendar)',
+    'Advanced analytics: Dashboard with detailed metrics',
+    'Team collaboration: Multi-user workspaces'
+]
+for enhancement in enhancements:
+    doc.add_paragraph(enhancement, style='List Bullet')
+
+# SECTION 17: Success Metrics
+doc.add_heading('17. Success Metrics', level=1)
+
+metrics = [
+    'All API endpoints tested and working correctly',
+    'Frontend successfully communicates with backend',
+    'User can complete full workflow: register, login, create board, add tasks, move tasks',
+    'Data persists correctly in database',
+    'Error handling displays user-friendly messages',
+    'Code is well-organized and documented',
+    'Git history shows consistent development progression',
+    'Docker setup runs without errors',
+    'API documentation is auto-generated and accurate'
+]
+for metric in metrics:
+    doc.add_paragraph(metric, style='List Bullet')
+
+# SECTION 18: Conclusion
+doc.add_heading('18. Conclusion', level=1)
+doc.add_paragraph(
+    'TaskBoard Lite represents a comprehensive learning project that covers the full software '
+    'development lifecycle. By implementing this application, students gain practical experience '
+    'in system architecture, API design, database modeling, frontend development, and modern '
+    'deployment practices. The project is scoped appropriately for a 3-week timeframe while '
+    'maintaining sufficient complexity to demonstrate professional software engineering practices.'
+)
+
+doc.add_paragraph(
+    'The intentional constraints and limited scope allow for deep exploration of essential '
+    'concepts, while the extensible design enables future enhancement and demonstrates scalability '
+    'considerations. The combination of technical documentation, working code, and deployment '
+    'examples provides a complete portfolio piece demonstrating competency in full-stack development.'
+)
+
+# Footer
+doc.add_paragraph()
+footer = doc.add_paragraph('---')
+footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+footer_text = doc.add_paragraph(f'Document generated on {datetime.now().strftime("%B %d, %Y at %H:%M")}')
+footer_text.alignment = WD_ALIGN_PARAGRAPH.CENTER
+footer_run = footer_text.runs[0]
+footer_run.font.size = Pt(9)
+footer_run.font.italic = True
+footer_run.font.color.rgb = RGBColor(128, 128, 128)
+
+footer_text2 = doc.add_paragraph('Version 2.0 - Comprehensive Project & Technical Specification')
+footer_text2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+footer_run2 = footer_text2.runs[0]
+footer_run2.font.size = Pt(9)
+footer_run2.font.italic = True
+footer_run2.font.color.rgb = RGBColor(128, 128, 128)
+
+# Save document
+output_path = 'TaskBoard_Lite_Comprehensive_Specification.docx'
+doc.save(output_path)
+print(f'✓ Comprehensive specification document created: {output_path}')
